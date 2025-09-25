@@ -1,4 +1,4 @@
-package BLS
+package bls
 
 import (
 	"crypto/rand"
@@ -29,7 +29,7 @@ func SetUp() (*BLSParams, error) {
 	_, _, g1, _ := bn254.Generators()
 	return &BLSParams{
 		G1Generator: g1,
-		DST:         []byte("BLS Signature"),
+		DST:         []byte("bls Signature"),
 	}, nil
 }
 

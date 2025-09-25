@@ -1,4 +1,4 @@
-package BLS
+package bls
 
 import (
 	"crypto/rand"
@@ -21,8 +21,8 @@ func main() {
 	gx.ScalarMultiplication(&g1, x) // public key: G1Generator^x = G1Generator^x in G1Generator
 
 	// (3) Signature
-	message := []byte("Hello, I am a message for BLS signing.")
-	messagePointG2, err := bn254.HashToG2(message, []byte("BLS Signature")) // compute h(m) in G2
+	message := []byte("Hello, I am a message for bls signing.")
+	messagePointG2, err := bn254.HashToG2(message, []byte("bls Signature")) // compute h(m) in G2
 	if err != nil {
 		panic(err)
 	}
