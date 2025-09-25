@@ -6,7 +6,7 @@ we implement some pairing-based crypto algorithm
 pairing-library: https://github.com/Consensys/gnark
 
 * bls signature
-* identity based encryption
+* identity based encryption: [Identity-Based Encryption from the Weil Pairing](https://link.springer.com/chapter/10.1007/3-540-44647-8_13)
 
 ## How to use
 
