@@ -83,7 +83,7 @@ func Encrypt(ibeParams IBEParams, id string, message []byte) (*IBECiphertext, er
 	//if err != nil {
 	//	return nil, fmt.Errorf("failed to encrypt message")
 	//}
-	//fmt.Printf("encrypt gid: %x\n", gid)
+	//fmt.Printf("encrypt gid: %v\n", gid)
 
 	// c1 = g^r
 	var c1 bn254.G1Affine
