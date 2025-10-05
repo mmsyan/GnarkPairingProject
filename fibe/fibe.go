@@ -14,6 +14,7 @@ type FIBE struct {
 	distance int
 	g1       bn254.G1Affine
 	g2       bn254.G2Affine
+	q        *big.Int
 	msk_ti   []*big.Int
 	msk_y    *big.Int
 	pk_Ti    []*bn254.G2Affine
@@ -21,8 +22,8 @@ type FIBE struct {
 }
 
 type FIBESecretKey struct {
-	di             map[int]*bn254.G1Affine
 	userAttributes []int
+	di             map[int]*bn254.G1Affine
 }
 
 type FIBECiphertext struct {
@@ -42,61 +43,66 @@ func NewFIBE(universe int, distance int) *FIBE {
 }
 
 func (fibe *FIBE) SetUp() {
+	fibe.q = ecc.BN254.ScalarField()
 	_, _, fibe.g1, fibe.g2 = bn254.Generators()
 	var err error
-	for i := 0; i < fibe.universe; i++ {
-		// ti <- Zq
-		fibe.msk_ti[i], err = rand.Int(rand.Reader, ecc.BN254.ScalarField())
-		// Ti = g2^ti
-		fibe.pk_Ti[i] = fibe.g2.ScalarMultiplicationBase(fibe.msk_ti[i])
+	for i := 1; i <= fibe.universe; i++ {
+		fibe.msk_ti[i], err = rand.Int(rand.Reader, fibe.q)              // ti <- Zq
+		fibe.pk_Ti[i] = fibe.g2.ScalarMultiplicationBase(fibe.msk_ti[i]) // Ti = g2^ti
 	}
-	// y <- Zq
-	fibe.msk_y, err = rand.Int(rand.Reader, ecc.BN254.ScalarField())
-	// Y = e(g1, g2)^y
+	fibe.msk_y, err = rand.Int(rand.Reader, fibe.q) // y <- Zq
 	eG1G2, err := bn254.Pair([]bn254.G1Affine{fibe.g1}, []bn254.G2Affine{fibe.g2})
+	fibe.pk_Y = *((new(bn254.GT)).Exp(eG1G2, fibe.msk_y)) // Y = e(g1, g2)^y
+	fmt.Printf("fibe.pk_Y: %v\n", fibe.pk_Y)
+
+	eG1G2Y, err := bn254.Pair([]bn254.G1Affine{fibe.g1}, []bn254.G2Affine{*fibe.g2.ScalarMultiplicationBase(fibe.msk_y)})
+	fmt.Printf("eG1G2Y: %v\n", eG1G2Y)
+
 	if err != nil {
 		panic(err)
 	}
-	fibe.pk_Y = *(new(bn254.GT)).Exp(eG1G2, fibe.msk_y)
-
 }
 
 func (fibe *FIBE) KeyGenerate(userAttributes []int) (*FIBESecretKey, error) {
-	q := ecc.BN254.ScalarField()
 	di := make(map[int]*bn254.G1Affine)
 	polynomial := utils.GenerateRandomPolynomial(fibe.distance, fibe.msk_y)
-
 	for _, i := range userAttributes {
 		qi := utils.ComputePolynomialValue(polynomial, new(big.Int).SetInt64(int64(i)))
-
-		// 2. 在有限域 F_q 内计算除法：qiDivTi = qi * (msk_ti[i])^{-1} mod q
-		ti_inverse := new(big.Int).ModInverse(fibe.msk_ti[i], q)
-		if ti_inverse == nil {
+		// 在有限域 F_q 内计算除法：qiDivTi = qi * (msk_ti[i])^{-1} mod q
+		tiInverse := new(big.Int).ModInverse(fibe.msk_ti[i], fibe.q)
+		if tiInverse == nil {
 			return nil, fmt.Errorf("failed to compute modular inverse for msk_ti[%d]", i)
 		}
-
-		qiDivTi := new(big.Int).Mul(qi, ti_inverse)
-		qiDivTi.Mod(qiDivTi, q)
-
+		qiDivTi := new(big.Int).Mul(qi, tiInverse)
+		qiDivTi.Mod(qiDivTi, fibe.q)
+		// Di = g1^(q(i)/ti)
 		Di := fibe.g1.ScalarMultiplicationBase(qiDivTi)
 		di[i] = Di
 	}
 
 	return &FIBESecretKey{
-		di:             di,
 		userAttributes: userAttributes,
+		di:             di,
 	}, nil
 }
 
 func (fibe *FIBE) Encrypt(messageAttributes []int, message bn254.GT) (*FIBECiphertext, error) {
-	s, err := rand.Int(rand.Reader, ecc.BN254.ScalarField())
+	s, err := rand.Int(rand.Reader, fibe.q)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt message")
 	}
-	ys := (new(bn254.GT)).Exp(fibe.pk_Y, s)
+	egg_ys := *(new(bn254.GT)).Exp(fibe.pk_Y, s)
+	fmt.Printf("egg_ys: %v\n", egg_ys)
+
+	another, err := bn254.Pair([]bn254.G1Affine{
+		*fibe.g1.ScalarMultiplicationBase(fibe.msk_y),
+	}, []bn254.G2Affine{
+		*fibe.g2.ScalarMultiplicationBase(s),
+	})
+	fmt.Printf("another: %v\n", another)
 
 	// e' = message * Y^s = message * (e(g1, g2)^y)^s
-	ePrime := message.Mul(&message, ys)
+	ePrime := *(message.Mul(&message, &egg_ys))
 
 	// ei = Ti^s = (g2^ti)^s
 	ei := map[int]*bn254.G2Affine{}
@@ -106,26 +112,23 @@ func (fibe *FIBE) Encrypt(messageAttributes []int, message bn254.GT) (*FIBECiphe
 
 	return &FIBECiphertext{
 		messageAttributes: messageAttributes,
-		ePrime:            *ePrime,
+		ePrime:            ePrime,
 		ei:                ei,
 	}, nil
 
 }
 
 func (fibe *FIBE) Decrypt(userSecretKey *FIBESecretKey, ciphertext *FIBECiphertext) (bn254.GT, error) {
-	userAttributes := userSecretKey.userAttributes
-	messageAttributes := ciphertext.messageAttributes
-	s := utils.FindCommonAttributes(userAttributes, messageAttributes, fibe.distance)
+	s := utils.FindCommonAttributes(userSecretKey.userAttributes, ciphertext.messageAttributes, fibe.distance)
 	if s == nil {
-		return bn254.GT{}, fmt.Errorf("failed to find message attributes")
+		return bn254.GT{}, fmt.Errorf("failed to find enough common attributes")
 	}
-
 	denominator := bn254.GT{}
 	denominator.SetOne()
-
 	for _, i := range s {
 		di := userSecretKey.di[i]
 		ei := ciphertext.ei[i]
+		// e(Di, Ei)
 		eDiEi, err := bn254.Pair([]bn254.G1Affine{*di}, []bn254.G2Affine{*ei})
 		if err != nil {
 			return bn254.GT{}, fmt.Errorf("failed to decrypt message")
@@ -134,6 +137,8 @@ func (fibe *FIBE) Decrypt(userSecretKey *FIBESecretKey, ciphertext *FIBECipherte
 		eDiEiDelta := (new(bn254.GT)).Exp(eDiEi, delta)
 		denominator.Mul(&denominator, eDiEiDelta)
 	}
+
+	fmt.Printf("denominator: %v\n", denominator)
 	decryptedMessage := ciphertext.ePrime.Div(&ciphertext.ePrime, &denominator)
 	return *decryptedMessage, nil
 }
