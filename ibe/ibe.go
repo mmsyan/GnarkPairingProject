@@ -73,17 +73,16 @@ func Encrypt(ibeParams IBEParams, id string, message []byte) (*IBECiphertext, er
 		return nil, fmt.Errorf("failed to encrypt message")
 	}
 	gid := *(new(bn254.GT).Exp(eGxQid, r))
-	fmt.Printf("gid: %v\n", gid)
+	//fmt.Printf("e(g^x, qid)^r: %v\n", gid.String())
 
-	//// qidR = qid^r in G2
+	// qidR = qid^r in G2, gid = e(g^x, qid^r)
 	//var qidR bn254.G2Affine
 	//qidR.ScalarMultiplication(&qid, r)
-	//// gid = e(g^x, qid^r)
-	//gid, err := bn254.Pair([]bn254.G1Affine{ibeParams.PublicKeyGx}, []bn254.G2Affine{qidR})
+	//gid2, err := bn254.Pair([]bn254.G1Affine{ibeParams.PublicKeyGx}, []bn254.G2Affine{qidR})
 	//if err != nil {
 	//	return nil, fmt.Errorf("failed to encrypt message")
 	//}
-	//fmt.Printf("encrypt gid: %x\n", gid)
+	//fmt.Printf("e(g^x, qid^r): %v\n", gid2.String())
 
 	// c1 = g^r
 	var c1 bn254.G1Affine
@@ -104,7 +103,6 @@ func Decrypt(ciphertext IBECiphertext, secretKey bn254.G2Affine) ([]byte, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt message")
 	}
-	fmt.Printf("decrypt gid: %v\n", gid)
 
 	gidBytes := utils.Hash2(gid)
 	return utils.Xor(ciphertext.C2, gidBytes), nil
