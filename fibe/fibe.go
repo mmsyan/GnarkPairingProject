@@ -47,20 +47,17 @@ func (fibe *FIBE) SetUp() {
 	_, _, fibe.g1, fibe.g2 = bn254.Generators()
 	var err error
 	for i := 1; i <= fibe.universe; i++ {
-		fibe.msk_ti[i], err = rand.Int(rand.Reader, fibe.q)              // ti <- Zq
-		fibe.pk_Ti[i] = fibe.g2.ScalarMultiplicationBase(fibe.msk_ti[i]) // Ti = g2^ti
+		fibe.msk_ti[i], err = rand.Int(rand.Reader, fibe.q)                          // ti <- Zq
+		fibe.pk_Ti[i] = (&bn254.G2Affine{}).ScalarMultiplicationBase(fibe.msk_ti[i]) // Ti = g2^ti
 	}
 	fibe.msk_y, err = rand.Int(rand.Reader, fibe.q) // y <- Zq
 	eG1G2, err := bn254.Pair([]bn254.G1Affine{fibe.g1}, []bn254.G2Affine{fibe.g2})
 	fibe.pk_Y = *((new(bn254.GT)).Exp(eG1G2, fibe.msk_y)) // Y = e(g1, g2)^y
-	fmt.Printf("fibe.pk_Y: %v\n", fibe.pk_Y)
-
-	eG1G2Y, err := bn254.Pair([]bn254.G1Affine{fibe.g1}, []bn254.G2Affine{*fibe.g2.ScalarMultiplicationBase(fibe.msk_y)})
-	fmt.Printf("eG1G2Y: %v\n", eG1G2Y)
 
 	if err != nil {
 		panic(err)
 	}
+
 }
 
 func (fibe *FIBE) KeyGenerate(userAttributes []int) (*FIBESecretKey, error) {
@@ -76,10 +73,10 @@ func (fibe *FIBE) KeyGenerate(userAttributes []int) (*FIBESecretKey, error) {
 		qiDivTi := new(big.Int).Mul(qi, tiInverse)
 		qiDivTi.Mod(qiDivTi, fibe.q)
 		// Di = g1^(q(i)/ti)
-		Di := fibe.g1.ScalarMultiplicationBase(qiDivTi)
+		//Di := fibe.g1.ScalarMultiplicationBase(qiDivTi)
+		Di := (&bn254.G1Affine{}).ScalarMultiplicationBase(qiDivTi)
 		di[i] = Di
 	}
-
 	return &FIBESecretKey{
 		userAttributes: userAttributes,
 		di:             di,
@@ -92,14 +89,6 @@ func (fibe *FIBE) Encrypt(messageAttributes []int, message bn254.GT) (*FIBECiphe
 		return nil, fmt.Errorf("failed to encrypt message")
 	}
 	egg_ys := *(new(bn254.GT)).Exp(fibe.pk_Y, s)
-	fmt.Printf("egg_ys: %v\n", egg_ys)
-
-	another, err := bn254.Pair([]bn254.G1Affine{
-		*fibe.g1.ScalarMultiplicationBase(fibe.msk_y),
-	}, []bn254.G2Affine{
-		*fibe.g2.ScalarMultiplicationBase(s),
-	})
-	fmt.Printf("another: %v\n", another)
 
 	// e' = message * Y^s = message * (e(g1, g2)^y)^s
 	ePrime := *(message.Mul(&message, &egg_ys))
@@ -107,7 +96,8 @@ func (fibe *FIBE) Encrypt(messageAttributes []int, message bn254.GT) (*FIBECiphe
 	// ei = Ti^s = (g2^ti)^s
 	ei := map[int]*bn254.G2Affine{}
 	for _, i := range messageAttributes {
-		ei[i] = fibe.pk_Ti[i].ScalarMultiplicationBase(s)
+		//ei[i] = fibe.pk_Ti[i].ScalarMultiplicationBase(s)
+		ei[i] = (&bn254.G2Affine{}).ScalarMultiplication(fibe.pk_Ti[i], s)
 	}
 
 	return &FIBECiphertext{
@@ -138,7 +128,6 @@ func (fibe *FIBE) Decrypt(userSecretKey *FIBESecretKey, ciphertext *FIBECipherte
 		denominator.Mul(&denominator, eDiEiDelta)
 	}
 
-	fmt.Printf("denominator: %v\n", denominator)
 	decryptedMessage := ciphertext.ePrime.Div(&ciphertext.ePrime, &denominator)
 	return *decryptedMessage, nil
 }
