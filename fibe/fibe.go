@@ -99,7 +99,6 @@ func (fibe *FIBE) Encrypt(messageAttributes []int, message bn254.GT) (*FIBECiphe
 		//ei[i] = fibe.pk_Ti[i].ScalarMultiplicationBase(s)
 		ei[i] = (&bn254.G2Affine{}).ScalarMultiplication(fibe.pk_Ti[i], s)
 	}
-
 	return &FIBECiphertext{
 		messageAttributes: messageAttributes,
 		ePrime:            ePrime,
