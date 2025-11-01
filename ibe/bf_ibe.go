@@ -9,19 +9,19 @@ import (
 	"math/big"
 )
 
-type IBEParams struct {
+type BFIBEParams struct {
 	MasterKey   *big.Int
 	PublicKeyG  bn254.G1Affine
 	PublicKeyGx bn254.G1Affine
 	DST         []byte
 }
 
-type IBECiphertext struct {
+type BFIBECiphertext struct {
 	C1 bn254.G1Affine
 	C2 []byte
 }
 
-func SetUp() (*IBEParams, error) {
+func SetUp() (*BFIBEParams, error) {
 	// x <- Zq
 	x, err := rand.Int(rand.Reader, ecc.BN254.ScalarField())
 	if err != nil {
@@ -33,7 +33,7 @@ func SetUp() (*IBEParams, error) {
 	_, _, g, _ := bn254.Generators()
 	var gx bn254.G1Affine
 	gx.ScalarMultiplication(&g, x)
-	return &IBEParams{
+	return &BFIBEParams{
 		MasterKey:   x,
 		PublicKeyG:  g,
 		PublicKeyGx: gx,
@@ -41,7 +41,7 @@ func SetUp() (*IBEParams, error) {
 	}, nil
 }
 
-func KeyGenerate(ibeParams IBEParams, id string) (bn254.G2Affine, error) {
+func KeyGenerate(ibeParams BFIBEParams, id string) (bn254.G2Affine, error) {
 	// qid = hashToCurve(id) in G2
 	qid, err := bn254.HashToG2([]byte(id), ibeParams.DST)
 	if err != nil {
@@ -54,7 +54,7 @@ func KeyGenerate(ibeParams IBEParams, id string) (bn254.G2Affine, error) {
 	return sk, nil
 }
 
-func Encrypt(ibeParams IBEParams, id string, message []byte) (*IBECiphertext, error) {
+func Encrypt(ibeParams BFIBEParams, id string, message []byte) (*BFIBECiphertext, error) {
 	// qid = hashToCurve(id) in G2
 	qid, err := bn254.HashToG2([]byte(id), ibeParams.DST)
 	if err != nil {
@@ -91,13 +91,13 @@ func Encrypt(ibeParams IBEParams, id string, message []byte) (*IBECiphertext, er
 	gidBytes := utils.Hash2(gid)
 	c2 := utils.Xor(message, gidBytes)
 
-	return &IBECiphertext{
+	return &BFIBECiphertext{
 		C1: c1,
 		C2: c2,
 	}, nil
 }
 
-func Decrypt(ciphertext IBECiphertext, secretKey bn254.G2Affine) ([]byte, error) {
+func Decrypt(ciphertext BFIBECiphertext, secretKey bn254.G2Affine) ([]byte, error) {
 	// gid = e(c1, sk) = e(g^r, qid^x)
 	gid, err := bn254.Pair([]bn254.G1Affine{ciphertext.C1}, []bn254.G2Affine{secretKey})
 	if err != nil {
