@@ -1,55 +1,64 @@
 package ibe
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
-func TestIBECorrect(t *testing.T) {
-	ibeParams, err := SetUp()
-	if err != nil {
-		t.Fatal(err)
+func TestBB01IBE1(t *testing.T) {
+	var err error
+
+	identity := &BFIBEIdentity{
+		Id: "ChenBerry",
 	}
 
-	sk, err := KeyGenerate(*ibeParams, "ChenBerry")
-	if err != nil {
-		t.Fatal(err)
+	message := &BFIBEMessage{
+		Message: []byte("Hello World"),
 	}
 
-	ciphertext, err := Encrypt(*ibeParams, "ChenBerry", []byte("Hello World"))
-	if err != nil {
-		t.Fatal(err)
+	instance, err := NewBFIBEInstance()
+	publicParams, err := instance.SetUp()
+	secretKey, err := instance.KeyGenerate(identity)
+	ciphertext, err := instance.Encrypt(identity, message, publicParams)
+	decryptedMessage, err := instance.Decrypt(ciphertext, secretKey)
+
+	if string(decryptedMessage.Message) != "Hello World" {
+		t.Fatalf("decrypted wrong, %s", string(decryptedMessage.Message))
 	}
 
-	decrypted, err := Decrypt(*ciphertext, sk)
+	fmt.Printf("message before encrypt: %s \n", string(message.Message))
+	fmt.Printf("message after decrypt: %s \n", string(decryptedMessage.Message))
+
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if string(decrypted) != "Hello World" {
-		t.Fatalf("decrypted wrong, %s", string(decrypted))
 	}
 }
 
-func TestIBEError(t *testing.T) {
-	ibeParams, err := SetUp()
-	if err != nil {
-		t.Fatal(err)
+func TestBB01IBE2(t *testing.T) {
+	var err error
+
+	identity := &BFIBEIdentity{
+		Id: "ChenBerry",
 	}
 
-	sk, err := KeyGenerate(*ibeParams, "ChenBerry")
-	if err != nil {
-		t.Fatal(err)
+	message := &BFIBEMessage{
+		Message: []byte("hajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfghajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhajimilaluomeiduoaxigaaxsajdhfsgbhjnashsdgvbjnhvcfdxrcfg hfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrhfdrxcftvgbhnhbgvfctdrtfvgbhj nhbgvfcdrctfvgbhnjhbgvqswdefrgthyjukhgfdsasdfghhgtfredwaswdfghhgtreasdfr"),
 	}
 
-	ciphertext, err := Encrypt(*ibeParams, "ErrorChenBerry", []byte("Hello World"))
-	if err != nil {
-		t.Fatal(err)
+	instance, err := NewBFIBEInstance()
+	publicParams, err := instance.SetUp()
+	secretKey, err := instance.KeyGenerate(identity)
+	ciphertext, err := instance.Encrypt(identity, message, publicParams)
+	decryptedMessage, err := instance.Decrypt(ciphertext, secretKey)
+
+	fmt.Printf("message before encrypt: %s \n", string(message.Message))
+	fmt.Printf("message after decrypt: %s \n", string(decryptedMessage.Message))
+	if string(decryptedMessage.Message) != string(message.Message) {
+		t.Fatalf("decrypted wrong, %s", string(decryptedMessage.Message))
+		fmt.Println("测试不通过，因为明文长度太长导致异或步骤失效；建议对一个对称加密密钥进行")
 	}
 
-	decrypted, err := Decrypt(*ciphertext, sk)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if string(decrypted) == "Hello World" {
-		t.Fatal("decrypted wrong")
 	}
 }

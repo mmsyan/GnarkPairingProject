@@ -2,7 +2,6 @@ package ibe
 
 // 作者: mmsyan
 // 日期: 2025-11-01
-//
 // 参考论文:
 // Dan Boneh and Xavier Boyen. "Efficient Selective-ID Secure Identity-Based
 // Encryption Without Random Oracles." In Advances in Cryptology - EUROCRYPT 2004,
@@ -140,7 +139,7 @@ func (instance *BBIBEInstance) KeyGenerate(identity *BBIBEIdentity) (*BBIBESecre
 	denominator.Mod(denominator, q)                // denominator = (r*y + ID + x) mod q
 	denominator.ModInverse(denominator, q)
 
-	// k = g1 ^ {1 / (ID + x + r*y)}
+	// k = g2 ^ {1 / (ID + x + r*y)}
 	k := *new(bn254.G2Affine).ScalarMultiplicationBase(denominator)
 
 	// r, k = g2^{\frac{1}{Id+x+ry}}
