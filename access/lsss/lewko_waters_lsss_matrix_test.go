@@ -23,37 +23,37 @@ func TestLSSSMatrix(t *testing.T) {
 	}
 }
 
-func TestTreeDSL(t *testing.T) {
-	tree1, formulas := GetExample15()
-	tree2 := And(
-		LeafFromString("E"),
-		Or(
-			Or(
-				And(LeafFromString("A"), LeafFromString("B")),
-				And(LeafFromString("C"), LeafFromString("D")),
-			),
-			And(
-				Or(LeafFromString("A"), LeafFromString("B")),
-				Or(LeafFromString("C"), LeafFromString("D")),
-			),
-		),
-	)
-	m1 := NewLSSSMatrixFromBinaryTree(tree1)
-	m2 := NewLSSSMatrixFromBinaryTree(tree2)
-
-	fmt.Printf("Access formula: %s\n", formulas)
-	fmt.Printf("matrix from tree1 \n")
-	fmt.Println("ρ(i)  Matrix")
-	for j := range m1.accessMatrix {
-		fmt.Printf("index %d || attribute: %s ||  %v\n", j, m1.rho[j].String()[:4], m1.accessMatrix[j])
-	}
-	fmt.Println()
-	fmt.Printf("matrix from tree2 \n")
-	fmt.Println("ρ(i)  Matrix")
-	for j := range m2.accessMatrix {
-		fmt.Printf("index %d || attribute: %s ||  %v\n", j, m2.rho[j].String()[:4], m2.accessMatrix[j])
-	}
-}
+//func TestTreeDSL(t *testing.T) {
+//	tree1, formulas := GetExample15()
+//	tree2 := And(
+//		LeafFromString("E"),
+//		Or(
+//			Or(
+//				And(LeafFromString("A"), LeafFromString("B")),
+//				And(LeafFromString("C"), LeafFromString("D")),
+//			),
+//			And(
+//				Or(LeafFromString("A"), LeafFromString("B")),
+//				Or(LeafFromString("C"), LeafFromString("D")),
+//			),
+//		),
+//	)
+//	m1 := NewLSSSMatrixFromBinaryTree(tree1)
+//	m2 := NewLSSSMatrixFromBinaryTree(tree2)
+//
+//	fmt.Printf("Access formula: %s\n", formulas)
+//	fmt.Printf("matrix from tree1 \n")
+//	fmt.Println("ρ(i)  Matrix")
+//	for j := range m1.accessMatrix {
+//		fmt.Printf("index %d || attribute: %s ||  %v\n", j, m1.rho[j].String()[:4], m1.accessMatrix[j])
+//	}
+//	fmt.Println()
+//	fmt.Printf("matrix from tree2 \n")
+//	fmt.Println("ρ(i)  Matrix")
+//	for j := range m2.accessMatrix {
+//		fmt.Printf("index %d || attribute: %s ||  %v\n", j, m2.rho[j].String()[:4], m2.accessMatrix[j])
+//	}
+//}
 
 func TestLewkoWatersLsssMatrix_FindLinearCombinationWeight1(t *testing.T) {
 	exampleTree, formula := GetExample1()
@@ -416,6 +416,168 @@ func TestLewkoWatersLsssMatrix_FindLinearCombinationWeightSpecial2(t *testing.T)
 	}
 
 	userAttributes := []fr.Element{EElement, CElement, DElement}
+
+	lsss.Print()
+
+	for _, a := range userAttributes {
+		fmt.Printf("attributes: %s", a.String())
+		fmt.Println()
+	}
+	rows, wis := lsss.FindLinearCombinationWeight(userAttributes)
+	if rows != nil || wis != nil {
+		for i := range rows {
+			fmt.Printf("row: %d || wi: %s \n", rows[i], wis[i].String())
+		}
+	} else {
+		fmt.Println("rows and wis are nil")
+	}
+}
+
+func TestLewkoWatersLsssMatrix_FindLinearCombinationWeightSpecial3(t *testing.T) {
+	m := [][]fr.Element{
+		{fr.NewElement(1), fr.NewElement(1), fr.NewElement(0)},
+		{fr.NewElement(0), fr.NewElement(0), fr.NewElement(0)},
+		{fr.NewElement(0), fr.NewElement(0), fr.NewElement(0)},
+		{fr.NewElement(1), fr.NewElement(2), fr.NewElement(3)},
+		{fr.NewElement(1), fr.NewElement(2), fr.NewElement(4)},
+	}
+	AElement := hash.ToField("A")
+	BElement := hash.ToField("B")
+	CElement := hash.ToField("C")
+	DElement := hash.ToField("D")
+	EElement := hash.ToField("E")
+	attr := []fr.Element{EElement, AElement, BElement, CElement, DElement}
+	lsss := &LewkoWatersLsssMatrix{
+		rowNumber:    len(m),
+		columnNumber: len(m[0]),
+		accessMatrix: m,
+		rho:          attr,
+	}
+
+	userAttributes := []fr.Element{EElement, CElement, DElement}
+
+	lsss.Print()
+
+	for _, a := range userAttributes {
+		fmt.Printf("attributes: %s", a.String())
+		fmt.Println()
+	}
+	rows, wis := lsss.FindLinearCombinationWeight(userAttributes)
+	if rows != nil || wis != nil {
+		for i := range rows {
+			fmt.Printf("row: %d || wi: %s \n", rows[i], wis[i].String())
+		}
+	} else {
+		fmt.Println("rows and wis are nil")
+	}
+}
+
+func TestLewkoWatersLsssMatrix_FindLinearCombinationWeightSpecial4(t *testing.T) {
+	m := [][]fr.Element{
+		{fr.NewElement(1), fr.NewElement(1), fr.NewElement(1), fr.NewElement(1)},
+		{fr.NewElement(1), fr.NewElement(1), fr.NewElement(1), fr.NewElement(2)},
+		{fr.NewElement(1), fr.NewElement(1), fr.NewElement(1), fr.NewElement(3)},
+		{fr.NewElement(1), fr.NewElement(2), fr.NewElement(4), fr.NewElement(0)},
+		{fr.NewElement(1), fr.NewElement(3), fr.NewElement(9), fr.NewElement(0)},
+		{fr.NewElement(1), fr.NewElement(3), fr.NewElement(9), fr.NewElement(0)},
+		{fr.NewElement(1), fr.NewElement(3), fr.NewElement(9), fr.NewElement(0)},
+	}
+	AElement := hash.ToField("A")
+	BElement := hash.ToField("B")
+	CElement := hash.ToField("C")
+	DElement := hash.ToField("D")
+	EElement := hash.ToField("E")
+	FElement := hash.ToField("F")
+	GElement := hash.ToField("G")
+	attr := []fr.Element{AElement, BElement, CElement, DElement, EElement, FElement, GElement}
+	lsss := &LewkoWatersLsssMatrix{
+		rowNumber:    len(m),
+		columnNumber: len(m[0]),
+		accessMatrix: m,
+		rho:          attr,
+	}
+
+	userAttributes := []fr.Element{AElement, BElement, CElement, DElement, EElement, FElement, GElement}
+
+	lsss.Print()
+
+	for _, a := range userAttributes {
+		fmt.Printf("attributes: %s", a.String())
+		fmt.Println()
+	}
+	rows, wis := lsss.FindLinearCombinationWeight(userAttributes)
+	if rows != nil || wis != nil {
+		for i := range rows {
+			fmt.Printf("row: %d || wi: %s \n", rows[i], wis[i].String())
+		}
+	} else {
+		fmt.Println("rows and wis are nil")
+	}
+}
+
+func TestLewkoWatersLsssMatrix_FindLinearCombinationWeightSpecial5(t *testing.T) {
+	m := [][]fr.Element{
+		{fr.NewElement(1), fr.NewElement(1), fr.NewElement(1), fr.NewElement(1)},
+		{fr.NewElement(1), fr.NewElement(1), fr.NewElement(1), fr.NewElement(2)},
+		{fr.NewElement(1), fr.NewElement(2), fr.NewElement(4), fr.NewElement(0)},
+		{fr.NewElement(1), fr.NewElement(3), fr.NewElement(9), fr.NewElement(0)},
+	}
+	AElement := hash.ToField("A")
+	BElement := hash.ToField("B")
+	CElement := hash.ToField("C")
+	DElement := hash.ToField("D")
+	attr := []fr.Element{AElement, BElement, CElement, DElement}
+	lsss := &LewkoWatersLsssMatrix{
+		rowNumber:    len(m),
+		columnNumber: len(m[0]),
+		accessMatrix: m,
+		rho:          attr,
+	}
+
+	userAttributes := []fr.Element{AElement, BElement, CElement, DElement}
+
+	lsss.Print()
+
+	for _, a := range userAttributes {
+		fmt.Printf("attributes: %s", a.String())
+		fmt.Println()
+	}
+	rows, wis := lsss.FindLinearCombinationWeight(userAttributes)
+	if rows != nil || wis != nil {
+		for i := range rows {
+			fmt.Printf("row: %d || wi: %s \n", rows[i], wis[i].String())
+		}
+	} else {
+		fmt.Println("rows and wis are nil")
+	}
+}
+
+func TestLewkoWatersLsssMatrix_FindLinearCombinationWeightSpecial6(t *testing.T) {
+	m := [][]fr.Element{
+		{fr.NewElement(2), fr.NewElement(2), fr.NewElement(2), fr.NewElement(2), fr.NewElement(0)},
+		{fr.NewElement(2), fr.NewElement(2), fr.NewElement(2), fr.NewElement(4), fr.NewElement(0)},
+		{fr.NewElement(2), fr.NewElement(2), fr.NewElement(2), fr.NewElement(6), fr.NewElement(0)},
+		{fr.NewElement(1), fr.NewElement(2), fr.NewElement(4), fr.NewElement(0), fr.NewElement(0)},
+		{fr.NewElement(1), fr.NewElement(3), fr.NewElement(9), fr.NewElement(0), fr.NewElement(0)},
+		{fr.NewElement(1), fr.NewElement(3), fr.NewElement(9), fr.NewElement(0), fr.NewElement(0)},
+		{fr.NewElement(1), fr.NewElement(3), fr.NewElement(9), fr.NewElement(0), fr.NewElement(0)},
+	}
+	AElement := hash.ToField("A")
+	BElement := hash.ToField("B")
+	CElement := hash.ToField("C")
+	DElement := hash.ToField("D")
+	EElement := hash.ToField("E")
+	FElement := hash.ToField("F")
+	GElement := hash.ToField("G")
+	attr := []fr.Element{AElement, BElement, CElement, DElement, EElement, FElement, GElement}
+	lsss := &LewkoWatersLsssMatrix{
+		rowNumber:    len(m),
+		columnNumber: len(m[0]),
+		accessMatrix: m,
+		rho:          attr,
+	}
+
+	userAttributes := []fr.Element{AElement, BElement, CElement, DElement, EElement, FElement, GElement}
 
 	lsss.Print()
 
